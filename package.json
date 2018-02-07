@@ -17,9 +17,24 @@
   "license": "ISC",
   "bin": "index.js",
   "scripts": {
+    "precommit": "npm run lint",
+    "preversion": "npm run lint",
+    "lint": "eslint .",
     "postpublish": "git push && git push --tags"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
+  },
+  "devDependencies": {
+    "eslint": "^4.17.0",
+    "eslint-config-iddqd": "^1.1.0",
+    "husky": "^0.14.3"
+  },
+  "eslintConfig": {
+    "env": {
+      "node": true,
+      "browser": false
+    },
+    "extends": "iddqd/es6"
   }
 }
