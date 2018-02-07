@@ -30,6 +30,10 @@
     "eslint-config-iddqd": "^1.1.0",
     "husky": "^0.14.3"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joshuan/drone-client.git"
+  },
   "eslintConfig": {
     "env": {
       "node": true,
