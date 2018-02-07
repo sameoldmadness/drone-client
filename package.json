@@ -9,14 +9,14 @@
     "simple-git": "^1.89.0",
     "ws": "^4.0.0"
   },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
+  "keywords": [
+    "drone",
+    "cli"
+  ],
   "author": "Evgeniy Shershnev <joshuan.chel@gmail.com>",
   "license": "ISC",
-  "bin": {
-    "dr": "index.js"
+  "bin": "index.js",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
   }
 }
