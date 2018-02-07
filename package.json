@@ -16,6 +16,9 @@
   "author": "Evgeniy Shershnev <joshuan.chel@gmail.com>",
   "license": "ISC",
   "bin": "index.js",
+  "scripts": {
+    "postpublish": "git push && git push --tags"
+  },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
   }
