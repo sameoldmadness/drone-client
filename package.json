@@ -1,6 +1,6 @@
 {
   "name": "drone-client",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "",
   "main": "index.js",
   "dependencies": {
@@ -44,7 +44,15 @@
     },
     "extends": "iddqd/es6",
     "rules": {
-      "no-console": ["error", { "allow": ["warn", "error"] }]
+      "no-console": [
+        "error",
+        {
+          "allow": [
+            "warn",
+            "error"
+          ]
+        }
+      ]
     }
   }
 }
