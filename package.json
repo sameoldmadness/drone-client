@@ -16,6 +16,9 @@
   "author": "Evgeniy Shershnev <joshuan.chel@gmail.com>",
   "license": "ISC",
   "bin": "index.js",
+  "files": [
+    "index.js"
+  ],
   "scripts": {
     "precommit": "npm run lint",
     "preversion": "npm run lint",

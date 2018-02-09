@@ -34,7 +34,10 @@ function getGitRepository() {
 }
 
 function getLastDroneBuild({ owner, name }) {
-    return client.getLastBuild(owner, name);
+    return client.getBuilds(owner, name)
+        .then(builds => {
+            return client.getBuild(owner, name, builds[0].number);
+        });
 }
 
 function subscribeLog({ owner, name, build, job }) {
@@ -119,6 +122,7 @@ getGitRepository()
         return getLastDroneBuild(data);
     })
     .then(build => {
+        console.log('... build', build);
         logBuild(build);
 
         data.build = build.number;
