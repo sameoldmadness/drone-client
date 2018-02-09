@@ -50,7 +50,9 @@ function subscribeLog({ owner, name, build, job }) {
         ws.on('message', data => {
             const json = JSON.parse(data);
 
-            log(`${json.proc}: ${json.out}`);
+            if (json.out) {
+                log(`${json.proc}: ${json.out}`);
+            }
         });
 
         ws.on('error', err => {
