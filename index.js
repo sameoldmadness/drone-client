@@ -122,7 +122,6 @@ getGitRepository()
         return getLastDroneBuild(data);
     })
     .then(build => {
-        console.log('... build', build);
         logBuild(build);
 
         data.build = build.number;
