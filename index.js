@@ -6,6 +6,7 @@ const WebSocket = require('ws');
 const moment = require('moment');
 const Drone = require('drone-node').Client;
 const git = require('simple-git')(process.pwd);
+const colors = require('colors/safe');
 
 const server = process.env.DRONE_SERVER;
 const client = new Drone({
@@ -40,6 +41,23 @@ function getLastDroneBuild({ owner, name }) {
         });
 }
 
+function writeMessage(data) {
+    if (data.out) {
+        let pipe = `${data.proc}:`;
+        let text = data.out;
+
+        if (pipe.length <= 10) {
+            pipe += (new Array(10 - pipe.length)).join(' ');
+        }
+
+        if (text[0] === '+') {
+            text = colors.bold.green(text);
+        }
+
+        log(`${pipe} ${text}`);
+    }
+}
+
 function subscribeLog({ owner, name, build, job }) {
     return new Promise((resolve, reject) => {
         const domain = server.replace(/^https?:\/\//, '');
@@ -48,11 +66,7 @@ function subscribeLog({ owner, name, build, job }) {
         const ws = new WebSocket(url);
 
         ws.on('message', data => {
-            const json = JSON.parse(data);
-
-            if (json.out) {
-                log(`${json.proc}: ${json.out}`);
-            }
+            writeMessage(JSON.parse(data));
         });
 
         ws.on('error', err => {
@@ -74,29 +88,36 @@ function log() {
 }
 
 function logRepo(data) {
-    log('Repository:');
-    log('Owner: ', data.owner);
-    log('Name:  ', data.name);
+    log(`Repository: ${data.owner}/${data.name}`);
     log('--------------------------');
 }
 
-function logBuild(build) {
-    log('Message:');
-    log(build.message);
+function logBuild(build, data) {
+    log(`Message:  ${colors.italic.bold(build.message.replace(/\n/, ' '))}`);
     log('--------------------------');
     log(`Event:    ${build.event}`);
-    log(`Build:    ${build.number}`);
+    log(`Build:    ${build.number} ${server}/${data.owner}/${data.name}/${build.number}`);
     log(`Author:   ${build.author} <${build.author_email}>`);
     log(`Commit:   ${build.link_url}`);
     log('--------------------------');
 }
+
+const statusColors = {
+    skipped: 'green',
+    pending: 'yellow',
+    running: 'yellow',
+    success: 'green',
+    failure: 'red',
+    killed: 'red',
+    error: 'red'
+};
 
 function logJob(job) {
     const start = moment(new Date(job.started_at * 1000));
     const finish = moment(new Date(job.finished_at * 1000));
     const format = 'DD.MM.YYYY HH:mm:ss';
 
-    log(`Status:   ${job.status}`);
+    log(`Status:   ${colors[statusColors[job.status]].bold(job.status)}`);
     log(`Started:  ${start.format(format)} (${start.fromNow()})`);
     log(`Finished: ${finish.format(format)} (${finish.fromNow()})`);
 }
@@ -124,7 +145,7 @@ getGitRepository()
         return getLastDroneBuild(data);
     })
     .then(build => {
-        logBuild(build);
+        logBuild(build, data);
 
         data.build = build.number;
         data.job = build.jobs[0].number;

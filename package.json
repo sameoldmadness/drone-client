@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "colors": "^1.1.2",
     "drone-node": "^1.0.1",
     "moment": "^2.20.1",
     "simple-git": "^1.89.0",
