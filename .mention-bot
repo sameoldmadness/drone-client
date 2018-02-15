@@ -1,0 +1,5 @@
+{
+  "maxReviewers": 2,
+  "createReviewRequest": true,
+  "delayedUntil": "3d"
+}

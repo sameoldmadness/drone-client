@@ -17,14 +17,18 @@ const client = new Drone({
 git._silentLogging = true;
 
 function _parseGitRepository(data) {
-    const splited = data.split(':')[1].split('.')[0].split('/');
+    const remoteName = process.argv[2] || 'origin';
+    const { refs: { push: url } } = data
+        .find(remote => remote.name === remoteName);
+
+    const splited = url.split(':')[1].split('.')[0].split('/');
 
     return { owner: splited[0], name: splited[1] };
 }
 
 function getGitRepository() {
     return new Promise((resolve, reject) => {
-        git.listRemote(['--get-url'], (err, data) => {
+        git.getRemotes(true, (err, data) => {
             if (err) {
                 reject(err);
             } else {
@@ -34,10 +38,38 @@ function getGitRepository() {
     });
 }
 
-function getLastDroneBuild({ owner, name }) {
-    return client.getBuilds(owner, name)
+function getDroneBuild({ owner, name }) {
+    if (process.argv[3]) {
+        return getDroneLastAuthorBuild(owner, name);
+    }
+
+    return getDroneLastBuild(owner, name);
+}
+
+function getDroneLastBuild(owner, name) {
+    return client
+        .getLastBuild(owner, name)
+        .catch(err => {
+            if (err.statusCode === 404) {
+                console.warn('There is not a single build yet!');
+            }
+            process.exit(1);
+        });
+}
+
+function getDroneLastAuthorBuild(owner, name) {
+    return client
+        .getBuilds(owner, name)
         .then(builds => {
-            return client.getBuild(owner, name, builds[0].number);
+            const [, , author] = process.argv;
+            const lastAuthorBuild = builds.find(build => build.author === author);
+
+            if (!lastAuthorBuild) {
+                console.warn(`There is not a single build yet by ${author}!`);
+                process.exit(1);
+            }
+
+            return client.getBuild(owner, name, lastAuthorBuild.number);
         });
 }
 
@@ -56,6 +88,23 @@ function writeMessage(data) {
 
         log(`${pipe} ${text}`);
     }
+}
+function logBuildLog(data) {
+    if (['success', 'failure'].includes(data._raw.job.status)) {
+        return showLog(data);
+    }
+
+    return subscribeLog(data);
+}
+
+function showLog({ owner, name, build, _raw: { job: { number: job } } }) {
+    return client
+        .getBuildLogs(owner, name, build, job)
+        .then(logs => {
+            for (const record of logs) {
+                writeMessage(record);
+            }
+        });
 }
 
 function subscribeLog({ owner, name, build, job }) {
@@ -78,7 +127,7 @@ function subscribeLog({ owner, name, build, job }) {
         });
 
         ws.on('close', () => {
-            reject();
+            resolve();
         });
     });
 }
@@ -117,6 +166,7 @@ function logJob(job) {
     const finish = moment(new Date(job.finished_at * 1000));
     const format = 'DD.MM.YYYY HH:mm:ss';
 
+    log('--------------------------');
     log(`Status:   ${colors[statusColors[job.status]].bold(job.status)}`);
     log(`Started:  ${start.format(format)} (${start.fromNow()})`);
     log(`Finished: ${finish.format(format)} (${finish.fromNow()})`);
@@ -127,7 +177,7 @@ function logLink(data) {
         const url = `${server}/${data.owner}/${data.name}`;
 
         log('--------------------------');
-        log(data.build ? url : `${url}/${data.build}`);
+        log(`${url}/${data.build}`);
     }
 }
 
@@ -141,13 +191,12 @@ getGitRepository()
 
         return;
     })
-    .then(() => {
-        return getLastDroneBuild(data);
-    })
+    .then(() => getDroneBuild(data))
     .then(build => {
         logBuild(build, data);
 
         data.build = build.number;
+
         data.job = build.jobs[0].number;
         data._raw.build = build;
         data._raw.job = build.jobs[0]; // eslint-disable-line prefer-destructuring
@@ -155,7 +204,7 @@ getGitRepository()
         return;
     })
     .then(() => {
-        return subscribeLog(data);
+        return logBuildLog(data);
     })
     .then(() => {
         logJob(data._raw.job);
@@ -164,6 +213,5 @@ getGitRepository()
     })
     .catch(err => {
         console.error('Catched error:', err);
-        logLink(data);
         process.exit(1);
     });

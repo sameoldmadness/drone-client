@@ -24,6 +24,7 @@
     "precommit": "npm run lint",
     "preversion": "npm run lint",
     "lint": "eslint .",
+    "fix": "eslint . --fix",
     "postpublish": "git push && git push --tags"
   },
   "publishConfig": {
