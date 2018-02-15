@@ -38,7 +38,7 @@ function getGitRepository() {
             } else {
                 const repo = _parseGitRepository(data);
 
-                debug('Get Git Repository:');
+                debug('Get git repository');
                 debug(repo);
 
                 resolve(repo);
@@ -57,7 +57,7 @@ function getDroneBuild({ owner, name }) {
 
 const errorMessages = {
     404: 'There is not a single build yet!',
-    500: 'Drone send 500 error... :('
+    500: 'Drone responded with 500 error... :('
 };
 
 function getDroneLastBuild(owner, name) {
@@ -67,7 +67,7 @@ function getDroneLastBuild(owner, name) {
             if (errorMessages[err.statusCode]) {
                 log(errorMessages[err.statusCode]);
 
-                debug('Get Drone Last Build:');
+                debug('Get drone last build');
                 debug(err);
 
                 process.exit(1);
@@ -87,7 +87,7 @@ function getDroneLastAuthorBuild(owner, name) {
             if (!lastAuthorBuild) {
                 log(`There is not a single build yet by ${author}!`);
 
-                debug('Get Drone Last Author Build:');
+                debug('Get drone last author build');
                 debug(builds);
 
                 process.exit(1);
