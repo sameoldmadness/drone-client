@@ -1,4 +1,4 @@
-# Drone client for terminal ![npm version](https://img.shields.io/npm/v/drone-client.svg)
+# Drone CLI build viewer ![npm version](https://img.shields.io/npm/v/drone-client.svg)
 
 # Install
 
