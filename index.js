@@ -7,6 +7,7 @@ const moment = require('moment');
 const Drone = require('drone-node').Client;
 const git = require('simple-git')(process.pwd);
 const colors = require('colors/safe');
+const debug = require('debug')('drone:client');
 
 const server = process.env.DRONE_SERVER;
 const client = new Drone({
@@ -27,12 +28,20 @@ function _parseGitRepository(data) {
 }
 
 function getGitRepository() {
+    debug('Arguments:');
+    debug(process.argv);
+
     return new Promise((resolve, reject) => {
         git.getRemotes(true, (err, data) => {
             if (err) {
                 reject(err);
             } else {
-                resolve(_parseGitRepository(data));
+                const repo = _parseGitRepository(data);
+
+                debug('Get git repository');
+                debug(repo);
+
+                resolve(repo);
             }
         });
     });
@@ -46,14 +55,25 @@ function getDroneBuild({ owner, name }) {
     return getDroneLastBuild(owner, name);
 }
 
+const errorMessages = {
+    404: 'There is not a single build yet!',
+    500: 'Drone responded with 500 error... :('
+};
+
 function getDroneLastBuild(owner, name) {
     return client
         .getLastBuild(owner, name)
         .catch(err => {
-            if (err.statusCode === 404) {
-                console.warn('There is not a single build yet!');
+            if (errorMessages[err.statusCode]) {
+                log(errorMessages[err.statusCode]);
+
+                debug('Get drone last build');
+                debug(err);
+
+                process.exit(1);
             }
-            process.exit(1);
+
+            return Promise.reject(err);
         });
 }
 
@@ -65,7 +85,11 @@ function getDroneLastAuthorBuild(owner, name) {
             const lastAuthorBuild = builds.find(build => build.author === author);
 
             if (!lastAuthorBuild) {
-                console.warn(`There is not a single build yet by ${author}!`);
+                log(`There is not a single build yet by ${author}!`);
+
+                debug('Get drone last author build');
+                debug(builds);
+
                 process.exit(1);
             }
 
