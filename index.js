@@ -64,6 +64,16 @@ function getDroneLastBuild(owner, name) {
     return client
         .getLastBuild(owner, name)
         .catch(err => {
+            // Drone 0.5 gives a lot of stable returns error 500 to request the latest build :(
+            if (err.statusCode === 500) {
+                return client
+                    .getBuilds(owner, name)
+                    .then(builds => client.getBuild(owner, name, builds[0].number));
+            }
+
+            return Promise.reject(err);
+        })
+        .catch(err => {
             if (errorMessages[err.statusCode]) {
                 log(errorMessages[err.statusCode]);
 
