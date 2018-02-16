@@ -81,7 +81,7 @@ function getDroneLastAuthorBuild(owner, name) {
     return client
         .getBuilds(owner, name)
         .then(builds => {
-            const [, , author] = process.argv;
+            const [, , , author] = process.argv;
             const lastAuthorBuild = builds.find(build => build.author === author);
 
             if (!lastAuthorBuild) {
