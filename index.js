@@ -8,6 +8,7 @@ const Drone = require('drone-node').Client;
 const git = require('simple-git')(process.pwd);
 const colors = require('colors/safe');
 const debug = require('debug')('drone:client');
+const { parse } = require('url');
 
 const server = process.env.DRONE_SERVER;
 const client = new Drone({
@@ -23,8 +24,8 @@ function _parseGitRepository(data) {
     const url = remote.refs.push.replace(/\.git$/, '');
     const urlPath = parse(url).path;
     const ownerAndName = urlPath[0] === '/'
-        ? urlPath.slice(1)   // https://github.yandex-team.ru/owner/repo
-        : url.split(':')[1]; // git@github.yandex-team.ru:owner/repo
+        ? urlPath.slice(1) // HTTP
+        : url.split(':')[1]; // SSH
     const [owner, name] = ownerAndName.split('/');
 
     return { owner, name };
