@@ -18,13 +18,16 @@ const client = new Drone({
 git._silentLogging = true;
 
 function _parseGitRepository(data) {
-    const remoteName = process.argv[2] || 'origin';
-    const { refs: { push: url } } = data
-        .find(remote => remote.name === remoteName);
+    const [,, remoteName = 'origin'] = process.argv;
+    const remote = data.find(({ name }) => name === remoteName);
+    const url = remote.refs.push.replace(/\.git$/, '');
+    const urlPath = parse(url).path;
+    const ownerAndName = urlPath[0] === '/'
+        ? urlPath.slice(1)   // https://github.yandex-team.ru/owner/repo
+        : url.split(':')[1]; // git@github.yandex-team.ru:owner/repo
+    const [owner, name] = ownerAndName.split('/');
 
-    const splited = url.split(':')[1].split('.')[0].split('/');
-
-    return { owner: splited[0], name: splited[1] };
+    return { owner, name };
 }
 
 function getGitRepository() {
